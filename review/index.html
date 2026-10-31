@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>데이터셋 리뷰 — EF 하락 후 GDMT 격차 (cohort_gdmt.csv)</title>
+<meta name="description" content="MIMIC-IV-ECHO로 만든 심부전 치료격차 데이터셋의 변수 명세·결측률·코드북 리뷰 페이지. 4,290행 387열, 주분석 1,997명.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="데이터셋 리뷰 — EF 하락 후 GDMT 격차">
+<meta property="og:description" content="4,290행 387열 데이터셋의 종속·독립변수, 결측률, 전체 코드북.">
+<link rel="canonical" href="https://kimhs950627.github.io/27paper-echo-topic-gdmt/review/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23FBF9F4'/%3E%3Cpath d='M5 22 L11 22 L14 10 L18 26 L22 16 L27 16' stroke='%23A16207' stroke-width='2.4' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/tokens.css">
+<link rel="stylesheet" href="styles/site.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="crumb">
+      <a href="../">← 논문 계획 페이지</a>
+      <span class="dot">·</span>
+      <span>데이터셋 리뷰</span>
+    </div>
+    <h1>EF 하락 후 GDMT 격차 — 데이터셋 리뷰</h1>
+    <p class="sub"><code>cohort_gdmt.csv</code> · MIMIC-IV-ECHO v1.0.1 + MIMIC-IV hosp · 2026-11-01 생성</p>
+
+    <dl class="keyfacts">
+      <div><dt>행</dt><dd>4,290</dd></div>
+      <div><dt>열</dt><dd>387</dd></div>
+      <div><dt>EF 하락군</dt><dd>2,614</dd></div>
+      <div><dt>주분석</dt><dd>1,997</dd></div>
+      <div><dt>주 결과</dt><dd>14.4%</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="claim">
+  <h2><span class="n">01</span>논문이 밝히려는 것</h2>
+  <p class="lead">EF가 40% 아래로 떨어지면 심부전 4제 요법이 새로 적응이 된다. 그런데 그 순간은
+  어디에도 기록되지 않는다. 이 논문은 <strong>“누가 누락될지, 검사 결과가 나온 그 시점에 예측할 수 있는가”</strong>를 묻는다.</p>
+  <p>모델의 출력은 위험점수가 아니라 <strong>검토 대기 목록</strong>이다. 예측 대상은 “약을 못 올릴 이유가 없는데
+  90일 동안 아무 계열도 새로 시작되지 않은 환자”다.</p>
+</section>
+
+<section id="flow">
+  <h2><span class="n">02</span>코호트가 어떻게 줄었나</h2>
+  <div class="flow">
+    <div class="step"><b>70,429</b><span>TTE EF 유효값 보유</span></div>
+    <div class="step"><b>26,132</b><span>EF 2회 이상 (전이 관찰 가능)</span></div>
+    <div class="step"><b>2,614</b><span>EF ≥40 → &lt;40 전이</span></div>
+    <div class="step accent"><b>1,997</b><span>+ index 입원 (처방 측정 가능)</span></div>
+    <div class="step"><b>547</b><span>90일 내 새 GDMT 없음 (27.4%)</span></div>
+    <div class="step strong"><b>288</b><span>금기 없음 = 설명 불가 누락 (14.4%)</span></div>
+  </div>
+  <p class="note">마지막 두 단계가 이 논문의 표적이다. 547 중 259명은 K·eGFR·Hb·빌리루빈·INR 상
+  금기 소견이 있어 <em>정당한 미시작</em>으로 분류된다.</p>
+</section>
+
+<section id="vars">
+  <h2><span class="n">03</span>종속변수와 독립변수</h2>
+  <div class="two">
+    <div class="card y">
+      <h3>Y — 종속변수</h3>
+      <ul>
+        <li><code>unexplained_gap</code> <span class="tag">주 결과</span><br>
+          금기 소견 없음 + 90일 내 새 GDMT 계열 없음 = 1 (288 / 1,997 = 14.4%)</li>
+        <li><code>gdmt_gap</code><br>금기 구분 없이 “새 계열 없음” (547 / 1,997 = 27.4%)</li>
+        <li><code>gdmt_started_any</code><br>90일 내 새 계열 시작 여부 (72.6%가 시작)</li>
+        <li><code>gdmt_pillars_started_90d</code><br>시작한 계열 수 0~4</li>
+      </ul>
+    </div>
+    <div class="card x">
+      <h3>X — 독립변수 (190개 후보)</h3>
+      <ul>
+        <li><b>인구·입원</b> 6 — 나이, 성별, 입원 유형, 보험, 전년 입원 횟수</li>
+        <li><b>전이 특성</b> 5 — 직전 EF, index EF, 두 검사 간격, EF 측정 횟수</li>
+        <li><b>심초음파</b> 27 — LVEDD, 중격 두께, AV Vmax, TR Vmax, 판막 서술 등</li>
+        <li><b>동반질환</b> 20 — HF, CKD, DM, AF, MI, 빈혈 등 ICD 기반</li>
+        <li><b>처방 이력</b> 18 — index <em>이전</em> 계열별 복용 여부·계열 수</li>
+        <li><b>검사실</b> 114 — 38개 분석물질 × (최근값·측정 횟수·시점차), <code>_pre</code> 계열만</li>
+        <li><b>파생</b> 3 — CKD-EPI eGFR, BUN/Cr, CKD 단계</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <h3>X로 쓰면 안 되는 컬럼 — 177개 (시간 누출)</h3>
+    <p>랩 <code>*_post</code>·<code>*_post_n</code>·<code>_min</code>·<code>_max</code> 153개는 index <em>이후</em> 값을 포함한다
+    (<code>_min</code>/<code>_max</code>는 ±90일 전체 창에서 계산됨). 처방의 <code>med_start_*</code>·<code>med_stop_*</code>·<code>med_n_post</code>,
+    그리고 <code>days_to_next_ef</code>·<code>next_ef</code>·<code>died_in_hospital</code>·<code>days_to_death</code>·<code>los_days</code>도 모두 사후 변수다.</p>
+  </div>
+</section>
+
+<section id="coverage">
+  <h2><span class="n">04</span>결측률 — 랩은 공짜, 비싼 건 셋</h2>
+  <p class="note">주분석 모집단(1,997명) 기준. index 입원이 있는 환자에서는 랩이 거의 다 채워진다.</p>
+  <table class="cov">
+    <thead><tr><th>변수</th><th class="num">커버리지</th><th></th></tr></thead>
+    <tbody><tr><td><code>lvedd</code></td><td class="num">88.7%</td><td><span class="bar"><span style="width:89%"></span></span></td></tr><tr><td><code>septal_thickness</code></td><td class="num">86.4%</td><td><span class="bar"><span style="width:86%"></span></span></td></tr><tr><td><code>av_pk_vel</code></td><td class="num">81.0%</td><td><span class="bar"><span style="width:81%"></span></span></td></tr><tr><td><code>tr_velocity</code></td><td class="num">75.6%</td><td><span class="bar"><span style="width:76%"></span></span></td></tr><tr><td><code>sept_e_prime</code></td><td class="num">46.8%</td><td><span class="bar"><span style="width:47%"></span></span></td></tr><tr><td><code>la_vol</code></td><td class="num">29.6%</td><td><span class="bar"><span style="width:30%"></span></span></td></tr><tr><td><code>ntprobnp_pre</code></td><td class="num">53.4%</td><td><span class="bar"><span style="width:53%"></span></span></td></tr><tr><td><code>creatinine_pre</code></td><td class="num">98.7%</td><td><span class="bar"><span style="width:99%"></span></span></td></tr><tr><td><code>potassium_pre</code></td><td class="num">98.6%</td><td><span class="bar"><span style="width:99%"></span></span></td></tr><tr><td><code>hemoglobin_pre</code></td><td class="num">98.5%</td><td><span class="bar"><span style="width:98%"></span></span></td></tr><tr><td><code>albumin_pre</code></td><td class="num">70.5%</td><td><span class="bar"><span style="width:71%"></span></span></td></tr><tr><td><code>inr_pre</code></td><td class="num">93.4%</td><td><span class="bar"><span style="width:93%"></span></span></td></tr><tr><td><code>hba1c_pre</code></td><td class="num">30.1%</td><td><span class="bar"><span style="width:30%"></span></span></td></tr></tbody>
+  </table>
+  <p class="note">비싼 변수: <code>sept_e_prime</code> 46.8% · <code>ntprobnp_pre</code> 53.4% · <code>tr_velocity</code> 75.6%.
+  <code>e_e_prime</code>는 직접 11.1%, 파생 포함 15%로 <strong>사실상 사용 불가</strong>.</p>
+</section>
+
+<section id="sets">
+  <h2><span class="n">05</span>권고 변수 세트</h2>
+  <table class="cov">
+    <thead><tr><th>세트</th><th class="num">변수</th><th class="num">완전사례</th><th class="num">유지율</th><th class="num">gdmt_gap</th></tr></thead>
+    <tbody><tr><td>S1 최소</td><td class="num">15</td><td class="num">1,688</td><td class="num">84.5%</td><td class="num">25.2%</td></tr><tr><td>S2 표준</td><td class="num">27</td><td class="num">1,373</td><td class="num">68.8%</td><td class="num">24.7%</td></tr><tr><td>S3 확장 (+간)</td><td class="num">30</td><td class="num">1,107</td><td class="num">55.4%</td><td class="num">23.9%</td></tr><tr><td>S4 최대 (+TR·NT-proBNP)</td><td class="num">34</td><td class="num">486</td><td class="num">24.3%</td><td class="num">20.8%</td></tr></tbody>
+  </table>
+  <p class="note">S2(핵심+17)를 주모형으로 권고. S1은 민감도, S4는 NT-proBNP 하위군 탐색용.
+  <code>gdmt_gap</code>이 세트마다 25%→20.8%로 떨어지는 것은 검사가 많은 환자가 더 아프고 약도 더 받기 때문(선택편향).</p>
+</section>
+
+<section id="codebook">
+  <h2><span class="n">06</span>코드북 — 379개 변수 전체</h2>
+  <p class="note">변수명·설명·출처·결측률(주분석/전체). 아래 상자에 검색어를 넣으면 걸러진다.</p>
+  <div class="searchbar">
+    <input id="cbfilter" type="search" placeholder="변수명 또는 설명 검색 (예: creatinine, 판막, gdmt)" aria-label="코드북 검색">
+    <span id="cbcount" class="count"></span>
+  </div>
+  <div id="codebook-body">
+  <h3 class="cb-group" id="g-데이터셋-개요">데이터셋 개요</h3>
+<h3 class="cb-group" id="g-식별자-전이-사건">식별자·전이 사건</h3>
+<div class="tbl-wrap"><table class="cb">
+<thead><tr><th>변수</th><th>설명</th><th>출처</th><th>결측(주분석)</th><th>결측(전체)</th></tr></thead>
+<tbody>
+<tr><td class="cb-name" data-label="변수"><code>subject_id</code></td><td class="" data-label="설명">MIMIC-IV 환자 ID(가명)</td><td class="" data-label="출처">MIMIC-IV</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>arm</code></td><td class="" data-label="설명">drop=EF 하락군, recovery=EF 회복 대조군</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>index_measurement_id</code></td><td class="" data-label="설명">index 검사 ID(= EF&lt;40 을 처음 기록한 TTE)</td><td class="" data-label="출처">MIMIC-IV-ECHO</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>index_time</code></td><td class="" data-label="설명">index 검사 시각</td><td class="" data-label="출처">MIMIC-IV-ECHO</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ef_before</code></td><td class="" data-label="설명">직전 TTE EF(%)</td><td class="" data-label="출처">MIMIC-IV-ECHO</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ef_index</code></td><td class="" data-label="설명">index TTE EF(%) — 40 미만</td><td class="" data-label="출처">MIMIC-IV-ECHO</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>days_between</code></td><td class="" data-label="설명">직전 검사와 index 검사 사이 일수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>n_ef_total</code></td><td class="" data-label="설명">환자의 전체 TTE EF 측정 횟수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>n_ef_prior</code></td><td class="" data-label="설명">index 이전 EF 측정 횟수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>evCross40Ever</code></td><td class="" data-label="설명">40 미만 전이 여부(1=예)</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>confirmed_repeat</code></td><td class="" data-label="설명">다음 검사에서도 EF&lt;40 이었는지(1=확인됨)</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>days_to_next_ef</code></td><td class="" data-label="설명">index 이후 다음 EF 검사까지 일수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">42.6%</td><td class="" data-label="결측(전체)">39.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>next_ef</code></td><td class="" data-label="설명">다음 EF 값(%)</td><td class="" data-label="출처">MIMIC-IV-ECHO</td><td class="" data-label="결측(주분석)">42.6%</td><td class="" data-label="결측(전체)">39.7%</td></tr>
+</tbody></table></div>
+<h3 class="cb-group" id="g-인구-입원">인구·입원</h3>
+<div class="tbl-wrap"><table class="cb">
+<thead><tr><th>변수</th><th>설명</th><th>출처</th><th>결측(주분석)</th><th>결측(전체)</th></tr></thead>
+<tbody>
+<tr><td class="cb-name" data-label="변수"><code>gender</code></td><td class="" data-label="설명">성별(M/F)</td><td class="" data-label="출처">MIMIC-IV patients</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>anchor_age</code></td><td class="" data-label="설명">anchor year 당시 나이</td><td class="" data-label="출처">MIMIC-IV patients</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>index_year</code></td><td class="" data-label="설명">index 검사 연도</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>age_at_index</code></td><td class="" data-label="설명">index 시점 나이</td><td class="" data-label="출처">파생(anchor_age + 연도차)</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dod</code></td><td class="" data-label="설명">사망일</td><td class="" data-label="출처">MIMIC-IV patients</td><td class="" data-label="결측(주분석)">40.0%</td><td class="" data-label="결측(전체)">47.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hadm_id</code></td><td class="" data-label="설명">index 시점 입원 ID(±7일 내 최근접 포함)</td><td class="" data-label="출처">MIMIC-IV admissions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">23.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>admission_type</code></td><td class="" data-label="설명">입원 유형</td><td class="" data-label="출처">MIMIC-IV admissions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">23.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>insurance</code></td><td class="" data-label="설명">보험 유형</td><td class="" data-label="출처">MIMIC-IV admissions</td><td class="" data-label="결측(주분석)">0.5%</td><td class="" data-label="결측(전체)">24.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>admit_time</code></td><td class="" data-label="설명">입원 시각</td><td class="" data-label="출처">MIMIC-IV admissions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">23.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>discharge_time</code></td><td class="" data-label="설명">퇴원 시각</td><td class="" data-label="출처">MIMIC-IV admissions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">23.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>los_days</code></td><td class="" data-label="설명">재원일수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">23.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>died_in_hospital</code></td><td class="" data-label="설명">병원 내 사망(1=예)</td><td class="" data-label="출처">MIMIC-IV admissions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">23.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>n_admissions_pre365</code></td><td class="" data-label="설명">index 전 365일 입원 횟수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>days_to_death</code></td><td class="" data-label="설명">index 로부터 사망까지 일수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">40.0%</td><td class="" data-label="결측(전체)">47.1%</td></tr>
+</tbody></table></div>
+<h3 class="cb-group" id="g-심초음파-구조화-">심초음파(구조화)</h3>
+<div class="tbl-wrap"><table class="cb">
+<thead><tr><th>변수</th><th>설명</th><th>출처</th><th>결측(주분석)</th><th>결측(전체)</th></tr></thead>
+<tbody>
+<tr><td class="cb-name" data-label="변수"><code>av_area_continuity</code></td><td class="" data-label="설명">대동맥판 면적(연속방정식, cm²)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">84.4%</td><td class="" data-label="결측(전체)">84.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>av_mean_grad</code></td><td class="" data-label="설명">대동맥판 평균압력차(mmHg)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">78.2%</td><td class="" data-label="결측(전체)">78.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>av_pk_vel</code></td><td class="" data-label="설명">대동맥판 최고속도(m/s)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">19.0%</td><td class="" data-label="결측(전체)">15.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>av_vti</code></td><td class="" data-label="설명">대동맥판 VTI(cm)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">92.9%</td><td class="" data-label="결측(전체)">92.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>e_e_prime</code></td><td class="" data-label="설명">E/e′(기록값)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">88.9%</td><td class="" data-label="결측(전체)">86.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inf_lat_thickness</code></td><td class="" data-label="설명">좌심실 후측벽 두께(cm)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">13.7%</td><td class="" data-label="결측(전체)">10.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>la_vol</code></td><td class="" data-label="설명">좌심방 용적(mL)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">70.4%</td><td class="" data-label="결측(전체)">67.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lat_e_prime</code></td><td class="" data-label="설명">측벽 e′(cm/s)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">51.8%</td><td class="" data-label="결측(전체)">46.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lvedd</code></td><td class="" data-label="설명">좌심실 이완말기 내경(cm)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">11.3%</td><td class="" data-label="결측(전체)">9.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lvef</code></td><td class="" data-label="설명">좌심실 박출률(%)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lvot_diam</code></td><td class="" data-label="설명">LVOT 직경(cm)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">28.7%</td><td class="" data-label="결측(전체)">26.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lvot_vti</code></td><td class="" data-label="설명">LVOT VTI(cm)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">37.4%</td><td class="" data-label="결측(전체)">36.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>mv_peak_vel</code></td><td class="" data-label="설명">승모판 E파 속도(m/s)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">96.4%</td><td class="" data-label="결측(전체)">95.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sept_e_prime</code></td><td class="" data-label="설명">중격 e′(cm/s)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">53.2%</td><td class="" data-label="결측(전체)">47.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>septal_thickness</code></td><td class="" data-label="설명">심실중격 두께(cm)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">13.6%</td><td class="" data-label="결측(전체)">10.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tapse</code></td><td class="" data-label="설명">TAPSE(cm)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">89.2%</td><td class="" data-label="결측(전체)">88.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tr_mmhg</code></td><td class="" data-label="설명">삼척판 압력차(mmHg)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">24.2%</td><td class="" data-label="결측(전체)">22.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tr_velocity</code></td><td class="" data-label="설명">삼첨판 역류 최고속도(m/s)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">24.4%</td><td class="" data-label="결측(전체)">22.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>cat_aortic_regurg</code></td><td class="" data-label="설명">판독 기술값 — aortic_regurg(중증도 서술)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured</td><td class="" data-label="결측(주분석)">55.9%</td><td class="" data-label="결측(전체)">54.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>cat_aortic_stenosis</code></td><td class="" data-label="설명">판독 기술값 — aortic_stenosis(중증도 서술)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured</td><td class="" data-label="결측(주분석)">83.3%</td><td class="" data-label="결측(전체)">84.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>cat_ivc</code></td><td class="" data-label="설명">판독 기술값 — ivc(중증도 서술)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured</td><td class="" data-label="결측(주분석)">85.7%</td><td class="" data-label="결측(전체)">84.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>cat_mitral_regurg</code></td><td class="" data-label="설명">판독 기술값 — mitral_regurg(중증도 서술)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured</td><td class="" data-label="결측(주분석)">9.0%</td><td class="" data-label="결측(전체)">8.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>cat_pericardial_effusion</code></td><td class="" data-label="설명">판독 기술값 — pericardial_effusion(중증도 서술)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured</td><td class="" data-label="결측(주분석)">74.4%</td><td class="" data-label="결측(전체)">76.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>cat_rv_function</code></td><td class="" data-label="설명">판독 기술값 — rv_function(중증도 서술)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured</td><td class="" data-label="결측(주분석)">4.0%</td><td class="" data-label="결측(전체)">3.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>cat_tricuspid_regurg</code></td><td class="" data-label="설명">판독 기술값 — tricuspid_regurg(중증도 서술)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured</td><td class="" data-label="결측(주분석)">12.0%</td><td class="" data-label="결측(전체)">10.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ee_derived_sept</code></td><td class="" data-label="설명">E/e′(중격, 파생)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">87.8%</td><td class="" data-label="결측(전체)">85.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ee_derived_lat</code></td><td class="" data-label="설명">E/e′(측벽, 파생)</td><td class="" data-label="출처">MIMIC-IV-ECHO structured (index 검사)</td><td class="" data-label="결측(주분석)">87.7%</td><td class="" data-label="결측(전체)">84.9%</td></tr>
+</tbody></table></div>
+<h3 class="cb-group" id="g-동반질환">동반질환</h3>
+<div class="tbl-wrap"><table class="cb">
+<thead><tr><th>변수</th><th>설명</th><th>출처</th><th>결측(주분석)</th><th>결측(전체)</th></tr></thead>
+<tbody>
+<tr><td class="cb-name" data-label="변수"><code>dx_hf</code></td><td class="" data-label="설명">심부전 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_hypertension</code></td><td class="" data-label="설명">고혈압 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_diabetes</code></td><td class="" data-label="설명">당뇨 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_ckd</code></td><td class="" data-label="설명">만성콩팥병 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_af</code></td><td class="" data-label="설명">심방세동 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_copd</code></td><td class="" data-label="설명">COPD 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_mi</code></td><td class="" data-label="설명">심근경색 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_stroke</code></td><td class="" data-label="설명">뇌졸중 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_anemia</code></td><td class="" data-label="설명">빈혈 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_valve_disease</code></td><td class="" data-label="설명">판막질환 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_amyloidosis</code></td><td class="" data-label="설명">아밀로이드증 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_obesity</code></td><td class="" data-label="설명">비만 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_liver_disease</code></td><td class="" data-label="설명">간질환 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_cancer</code></td><td class="" data-label="설명">암 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_thyroid_disease</code></td><td class="" data-label="설명">갑상선질환 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_dialysis</code></td><td class="" data-label="설명">투석 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_hyperkalemia</code></td><td class="" data-label="설명">고칼륨혈증 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_cardiomyopathy</code></td><td class="" data-label="설명">심근병증 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_pulm_hypertension</code></td><td class="" data-label="설명">폐고혈압 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>dx_sleep_apnea</code></td><td class="" data-label="설명">수면무호흡 진단코드 보유(1=예, index 이전 입원 기준)</td><td class="" data-label="출처">MIMIC-IV diagnoses_icd</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+</tbody></table></div>
+<h3 class="cb-group" id="g-gdmt-처방">GDMT 처방</h3>
+<div class="tbl-wrap"><table class="cb">
+<thead><tr><th>변수</th><th>설명</th><th>출처</th><th>결측(주분석)</th><th>결측(전체)</th></tr></thead>
+<tbody>
+<tr><td class="cb-name" data-label="변수"><code>med_on_acei</code></td><td class="" data-label="설명">ACE 억제제 — index 시점 복용 중(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_recent_acei</code></td><td class="" data-label="설명">ACE 억제제 — index 전 365일 내 처방(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_start_acei</code></td><td class="" data-label="설명">ACE 억제제 — index 후 90일 내 시작(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_stop_acei</code></td><td class="" data-label="설명">ACE 억제제 — index 후 90일 내 중단(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_on_arb</code></td><td class="" data-label="설명">ARB — index 시점 복용 중(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_recent_arb</code></td><td class="" data-label="설명">ARB — index 전 365일 내 처방(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_start_arb</code></td><td class="" data-label="설명">ARB — index 후 90일 내 시작(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_stop_arb</code></td><td class="" data-label="설명">ARB — index 후 90일 내 중단(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_on_arni</code></td><td class="" data-label="설명">ARNI(사쿠비트릴) — index 시점 복용 중(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_recent_arni</code></td><td class="" data-label="설명">ARNI(사쿠비트릴) — index 전 365일 내 처방(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_start_arni</code></td><td class="" data-label="설명">ARNI(사쿠비트릴) — index 후 90일 내 시작(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_stop_arni</code></td><td class="" data-label="설명">ARNI(사쿠비트릴) — index 후 90일 내 중단(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_on_betablocker</code></td><td class="" data-label="설명">베타차단제 — index 시점 복용 중(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_recent_betablocker</code></td><td class="" data-label="설명">베타차단제 — index 전 365일 내 처방(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_start_betablocker</code></td><td class="" data-label="설명">베타차단제 — index 후 90일 내 시작(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_stop_betablocker</code></td><td class="" data-label="설명">베타차단제 — index 후 90일 내 중단(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_on_mra</code></td><td class="" data-label="설명">MRA(스피로놀락톤/에플레레논) — index 시점 복용 중(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_recent_mra</code></td><td class="" data-label="설명">MRA(스피로놀락톤/에플레레논) — index 전 365일 내 처방(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_start_mra</code></td><td class="" data-label="설명">MRA(스피로놀락톤/에플레레논) — index 후 90일 내 시작(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_stop_mra</code></td><td class="" data-label="설명">MRA(스피로놀락톤/에플레레논) — index 후 90일 내 중단(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_on_sglt2i</code></td><td class="" data-label="설명">SGLT2 억제제 — index 시점 복용 중(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_recent_sglt2i</code></td><td class="" data-label="설명">SGLT2 억제제 — index 전 365일 내 처방(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_start_sglt2i</code></td><td class="" data-label="설명">SGLT2 억제제 — index 후 90일 내 시작(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_stop_sglt2i</code></td><td class="" data-label="설명">SGLT2 억제제 — index 후 90일 내 중단(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_on_loop_diuretic</code></td><td class="" data-label="설명">루프 이뇨제 — index 시점 복용 중(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_recent_loop_diuretic</code></td><td class="" data-label="설명">루프 이뇨제 — index 전 365일 내 처방(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_start_loop_diuretic</code></td><td class="" data-label="설명">루프 이뇨제 — index 후 90일 내 시작(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_stop_loop_diuretic</code></td><td class="" data-label="설명">루프 이뇨제 — index 후 90일 내 중단(1=예)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_n_pre</code></td><td class="" data-label="설명">index 전 365일 GDMT 처방 건수</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>med_n_post</code></td><td class="" data-label="설명">index 후 90일 GDMT 처방 건수</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>gdmt_pillars_on_at_index</code></td><td class="" data-label="설명">index 시점 복용 중인 GDMT 계열 수(0~4)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>gdmt_pillars_recent</code></td><td class="" data-label="설명">index 전 365일 내 처방된 GDMT 계열 수(0~4)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>gdmt_pillars_started_90d</code></td><td class="" data-label="설명">index 후 90일 내 새로 시작한 GDMT 계열 수(0~4)</td><td class="" data-label="출처">MIMIC-IV prescriptions</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>gdmt_started_any</code></td><td class="" data-label="설명">90일 내 새 GDMT 시작 여부(1=예) — 주 결과변수</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>gdmt_full4_at_index</code></td><td class="" data-label="설명">index 시점 4제 모두 복용(1=예)</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>gdmt_gap</code></td><td class="" data-label="설명">4제 미충족 상태에서 90일 내 새 계열 시작 없음(1=격차)</td><td class="" data-label="출처">파생 — 주 결과변수</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+</tbody></table></div>
+<h3 class="cb-group" id="g-검사실-랩-">검사실(랩)</h3>
+<div class="tbl-wrap"><table class="cb">
+<thead><tr><th>변수</th><th>설명</th><th>출처</th><th>결측(주분석)</th><th>결측(전체)</th></tr></thead>
+<tbody>
+<tr><td class="cb-name" data-label="변수"><code>albumin_pre</code></td><td class="" data-label="설명">index 전 90일 내 알부민 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">29.5%</td><td class="" data-label="결측(전체)">40.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>albumin_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 알부민 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">16.5%</td><td class="" data-label="결측(전체)">28.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>albumin_post</code></td><td class="" data-label="설명">index 후 90일 내 알부민 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">43.7%</td><td class="" data-label="결측(전체)">52.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>albumin_post_n</code></td><td class="" data-label="설명">index 후 90일 내 알부민 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">16.5%</td><td class="" data-label="결측(전체)">28.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>albumin_min</code></td><td class="" data-label="설명">index ±90일 내 알부민 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">16.5%</td><td class="" data-label="결측(전체)">28.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>albumin_max</code></td><td class="" data-label="설명">index ±90일 내 알부민 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">16.5%</td><td class="" data-label="결측(전체)">28.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>albumin_pre_days</code></td><td class="" data-label="설명">index로부터 알부민 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">29.5%</td><td class="" data-label="결측(전체)">40.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bicarbonate_pre</code></td><td class="" data-label="설명">index 전 90일 내 중탄산염 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.6%</td><td class="" data-label="결측(전체)">14.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bicarbonate_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 중탄산염 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bicarbonate_post</code></td><td class="" data-label="설명">index 후 90일 내 중탄산염 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.1%</td><td class="" data-label="결측(전체)">14.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bicarbonate_post_n</code></td><td class="" data-label="설명">index 후 90일 내 중탄산염 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bicarbonate_min</code></td><td class="" data-label="설명">index ±90일 내 중탄산염 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bicarbonate_max</code></td><td class="" data-label="설명">index ±90일 내 중탄산염 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bicarbonate_pre_days</code></td><td class="" data-label="설명">index로부터 중탄산염 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.6%</td><td class="" data-label="결측(전체)">14.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>calcium_total_pre</code></td><td class="" data-label="설명">index 전 90일 내 총칼슘 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">5.0%</td><td class="" data-label="결측(전체)">20.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>calcium_total_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 총칼슘 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>calcium_total_post</code></td><td class="" data-label="설명">index 후 90일 내 총칼슘 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">6.0%</td><td class="" data-label="결측(전체)">21.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>calcium_total_post_n</code></td><td class="" data-label="설명">index 후 90일 내 총칼슘 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>calcium_total_min</code></td><td class="" data-label="설명">index ±90일 내 총칼슘 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>calcium_total_max</code></td><td class="" data-label="설명">index ±90일 내 총칼슘 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>calcium_total_pre_days</code></td><td class="" data-label="설명">index로부터 총칼슘 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">5.0%</td><td class="" data-label="결측(전체)">20.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>chloride_pre</code></td><td class="" data-label="설명">index 전 90일 내 염소 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>chloride_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 염소 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>chloride_post</code></td><td class="" data-label="설명">index 후 90일 내 염소 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.0%</td><td class="" data-label="결측(전체)">13.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>chloride_post_n</code></td><td class="" data-label="설명">index 후 90일 내 염소 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>chloride_min</code></td><td class="" data-label="설명">index ±90일 내 염소 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>chloride_max</code></td><td class="" data-label="설명">index ±90일 내 염소 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>chloride_pre_days</code></td><td class="" data-label="설명">index로부터 염소 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>creatinine_pre</code></td><td class="" data-label="설명">index 전 90일 내 크레아티닌 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">12.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>creatinine_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 크레아티닌 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>creatinine_post</code></td><td class="" data-label="설명">index 후 90일 내 크레아티닌 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.0%</td><td class="" data-label="결측(전체)">12.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>creatinine_post_n</code></td><td class="" data-label="설명">index 후 90일 내 크레아티닌 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>creatinine_min</code></td><td class="" data-label="설명">index ±90일 내 크레아티닌 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>creatinine_max</code></td><td class="" data-label="설명">index ±90일 내 크레아티닌 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>creatinine_pre_days</code></td><td class="" data-label="설명">index로부터 크레아티닌 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">12.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ferritin_pre</code></td><td class="" data-label="설명">index 전 90일 내 페리틴 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">73.0%</td><td class="" data-label="결측(전체)">77.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ferritin_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 페리틴 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">56.5%</td><td class="" data-label="결측(전체)">63.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ferritin_post</code></td><td class="" data-label="설명">index 후 90일 내 페리틴 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">75.8%</td><td class="" data-label="결측(전체)">79.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ferritin_post_n</code></td><td class="" data-label="설명">index 후 90일 내 페리틴 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">56.5%</td><td class="" data-label="결측(전체)">63.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ferritin_min</code></td><td class="" data-label="설명">index ±90일 내 페리틴 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">56.5%</td><td class="" data-label="결측(전체)">63.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ferritin_max</code></td><td class="" data-label="설명">index ±90일 내 페리틴 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">56.5%</td><td class="" data-label="결측(전체)">63.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ferritin_pre_days</code></td><td class="" data-label="설명">index로부터 페리틴 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">73.0%</td><td class="" data-label="결측(전체)">77.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>iron_pre</code></td><td class="" data-label="설명">index 전 90일 내 철 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">74.2%</td><td class="" data-label="결측(전체)">78.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>iron_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 철 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.2%</td><td class="" data-label="결측(전체)">63.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>iron_post</code></td><td class="" data-label="설명">index 후 90일 내 철 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">76.4%</td><td class="" data-label="결측(전체)">79.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>iron_post_n</code></td><td class="" data-label="설명">index 후 90일 내 철 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.2%</td><td class="" data-label="결측(전체)">63.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>iron_min</code></td><td class="" data-label="설명">index ±90일 내 철 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.2%</td><td class="" data-label="결측(전체)">63.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>iron_max</code></td><td class="" data-label="설명">index ±90일 내 철 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.2%</td><td class="" data-label="결측(전체)">63.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>iron_pre_days</code></td><td class="" data-label="설명">index로부터 철 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">74.2%</td><td class="" data-label="결측(전체)">78.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tibc_pre</code></td><td class="" data-label="설명">index 전 90일 내 총철결합능 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">75.1%</td><td class="" data-label="결측(전체)">79.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tibc_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 총철결합능 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">58.8%</td><td class="" data-label="결측(전체)">65.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tibc_post</code></td><td class="" data-label="설명">index 후 90일 내 총철결합능 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">77.6%</td><td class="" data-label="결측(전체)">80.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tibc_post_n</code></td><td class="" data-label="설명">index 후 90일 내 총철결합능 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">58.8%</td><td class="" data-label="결측(전체)">65.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tibc_min</code></td><td class="" data-label="설명">index ±90일 내 총철결합능 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">58.8%</td><td class="" data-label="결측(전체)">65.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tibc_max</code></td><td class="" data-label="설명">index ±90일 내 총철결합능 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">58.8%</td><td class="" data-label="결측(전체)">65.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>tibc_pre_days</code></td><td class="" data-label="설명">index로부터 총철결합능 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">75.1%</td><td class="" data-label="결측(전체)">79.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>phosphate_pre</code></td><td class="" data-label="설명">index 전 90일 내 인 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">5.6%</td><td class="" data-label="결측(전체)">21.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>phosphate_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 인 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">14.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>phosphate_post</code></td><td class="" data-label="설명">index 후 90일 내 인 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">6.2%</td><td class="" data-label="결측(전체)">22.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>phosphate_post_n</code></td><td class="" data-label="설명">index 후 90일 내 인 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">14.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>phosphate_min</code></td><td class="" data-label="설명">index ±90일 내 인 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">14.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>phosphate_max</code></td><td class="" data-label="설명">index ±90일 내 인 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.7%</td><td class="" data-label="결측(전체)">14.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>phosphate_pre_days</code></td><td class="" data-label="설명">index로부터 인 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">5.6%</td><td class="" data-label="결측(전체)">21.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>potassium_pre</code></td><td class="" data-label="설명">index 전 90일 내 칼륨 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">13.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>potassium_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 칼륨 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>potassium_post</code></td><td class="" data-label="설명">index 후 90일 내 칼륨 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">2.9%</td><td class="" data-label="결측(전체)">13.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>potassium_post_n</code></td><td class="" data-label="설명">index 후 90일 내 칼륨 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>potassium_min</code></td><td class="" data-label="설명">index ±90일 내 칼륨 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>potassium_max</code></td><td class="" data-label="설명">index ±90일 내 칼륨 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>potassium_pre_days</code></td><td class="" data-label="설명">index로부터 칼륨 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">13.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sodium_pre</code></td><td class="" data-label="설명">index 전 90일 내 나트륨 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sodium_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 나트륨 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sodium_post</code></td><td class="" data-label="설명">index 후 90일 내 나트륨 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.0%</td><td class="" data-label="결측(전체)">13.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sodium_post_n</code></td><td class="" data-label="설명">index 후 90일 내 나트륨 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sodium_min</code></td><td class="" data-label="설명">index ±90일 내 나트륨 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sodium_max</code></td><td class="" data-label="설명">index ±90일 내 나트륨 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>sodium_pre_days</code></td><td class="" data-label="설명">index로부터 나트륨 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">13.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_pre</code></td><td class="" data-label="설명">index 전 90일 내 BUN(혈액요소질소) 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">13.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 BUN(혈액요소질소) 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_post</code></td><td class="" data-label="설명">index 후 90일 내 BUN(혈액요소질소) 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.0%</td><td class="" data-label="결측(전체)">13.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_post_n</code></td><td class="" data-label="설명">index 후 90일 내 BUN(혈액요소질소) 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_min</code></td><td class="" data-label="설명">index ±90일 내 BUN(혈액요소질소) 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_max</code></td><td class="" data-label="설명">index ±90일 내 BUN(혈액요소질소) 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">7.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_pre_days</code></td><td class="" data-label="설명">index로부터 BUN(혈액요소질소) 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">13.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hematocrit_pre</code></td><td class="" data-label="설명">index 전 90일 내 헤마토크릿 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">14.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hematocrit_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 헤마토크릿 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">9.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hematocrit_post</code></td><td class="" data-label="설명">index 후 90일 내 헤마토크릿 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.8%</td><td class="" data-label="결측(전체)">15.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hematocrit_post_n</code></td><td class="" data-label="설명">index 후 90일 내 헤마토크릿 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">9.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hematocrit_min</code></td><td class="" data-label="설명">index ±90일 내 헤마토크릿 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">9.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hematocrit_max</code></td><td class="" data-label="설명">index ±90일 내 헤마토크릿 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">9.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hematocrit_pre_days</code></td><td class="" data-label="설명">index로부터 헤마토크릿 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.5%</td><td class="" data-label="결측(전체)">14.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hemoglobin_pre</code></td><td class="" data-label="설명">index 전 90일 내 혈색소 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.6%</td><td class="" data-label="결측(전체)">14.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hemoglobin_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 혈색소 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hemoglobin_post</code></td><td class="" data-label="설명">index 후 90일 내 혈색소 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.9%</td><td class="" data-label="결측(전체)">15.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hemoglobin_post_n</code></td><td class="" data-label="설명">index 후 90일 내 혈색소 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hemoglobin_min</code></td><td class="" data-label="설명">index ±90일 내 혈색소 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hemoglobin_max</code></td><td class="" data-label="설명">index ±90일 내 혈색소 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hemoglobin_pre_days</code></td><td class="" data-label="설명">index로부터 혈색소 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.6%</td><td class="" data-label="결측(전체)">14.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>platelet_pre</code></td><td class="" data-label="설명">index 전 90일 내 혈소판 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.7%</td><td class="" data-label="결측(전체)">14.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>platelet_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 혈소판 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>platelet_post</code></td><td class="" data-label="설명">index 후 90일 내 혈소판 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.9%</td><td class="" data-label="결측(전체)">15.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>platelet_post_n</code></td><td class="" data-label="설명">index 후 90일 내 혈소판 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>platelet_min</code></td><td class="" data-label="설명">index ±90일 내 혈소판 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>platelet_max</code></td><td class="" data-label="설명">index ±90일 내 혈소판 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">8.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>platelet_pre_days</code></td><td class="" data-label="설명">index로부터 혈소판 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.7%</td><td class="" data-label="결측(전체)">14.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>wbc_pre</code></td><td class="" data-label="설명">index 전 90일 내 백혈구 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.6%</td><td class="" data-label="결측(전체)">14.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>wbc_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 백혈구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">9.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>wbc_post</code></td><td class="" data-label="설명">index 후 90일 내 백혈구 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.0%</td><td class="" data-label="결측(전체)">16.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>wbc_post_n</code></td><td class="" data-label="설명">index 후 90일 내 백혈구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">9.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>wbc_min</code></td><td class="" data-label="설명">index ±90일 내 백혈구 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">9.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>wbc_max</code></td><td class="" data-label="설명">index ±90일 내 백혈구 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">9.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>wbc_pre_days</code></td><td class="" data-label="설명">index로부터 백혈구 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.6%</td><td class="" data-label="결측(전체)">14.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_pre</code></td><td class="" data-label="설명">index 전 90일 내 CK 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">35.8%</td><td class="" data-label="결측(전체)">47.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 CK 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">23.3%</td><td class="" data-label="결측(전체)">36.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_post</code></td><td class="" data-label="설명">index 후 90일 내 CK 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">53.2%</td><td class="" data-label="결측(전체)">61.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_post_n</code></td><td class="" data-label="설명">index 후 90일 내 CK 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">23.3%</td><td class="" data-label="결측(전체)">36.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_min</code></td><td class="" data-label="설명">index ±90일 내 CK 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">23.3%</td><td class="" data-label="결측(전체)">36.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_max</code></td><td class="" data-label="설명">index ±90일 내 CK 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">23.3%</td><td class="" data-label="결측(전체)">36.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_pre_days</code></td><td class="" data-label="설명">index로부터 CK 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">35.8%</td><td class="" data-label="결측(전체)">47.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_mb_pre</code></td><td class="" data-label="설명">index 전 90일 내 CK-MB 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">29.4%</td><td class="" data-label="결측(전체)">43.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_mb_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 CK-MB 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.2%</td><td class="" data-label="결측(전체)">33.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_mb_post</code></td><td class="" data-label="설명">index 후 90일 내 CK-MB 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">49.3%</td><td class="" data-label="결측(전체)">59.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_mb_post_n</code></td><td class="" data-label="설명">index 후 90일 내 CK-MB 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.2%</td><td class="" data-label="결측(전체)">33.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_mb_min</code></td><td class="" data-label="설명">index ±90일 내 CK-MB 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.2%</td><td class="" data-label="결측(전체)">33.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_mb_max</code></td><td class="" data-label="설명">index ±90일 내 CK-MB 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.2%</td><td class="" data-label="결측(전체)">33.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ck_mb_pre_days</code></td><td class="" data-label="설명">index로부터 CK-MB 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">29.4%</td><td class="" data-label="결측(전체)">43.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>glucose_pre</code></td><td class="" data-label="설명">index 전 90일 내 혈당 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.9%</td><td class="" data-label="결측(전체)">17.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>glucose_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 혈당 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">11.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>glucose_post</code></td><td class="" data-label="설명">index 후 90일 내 혈당 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">3.6%</td><td class="" data-label="결측(전체)">18.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>glucose_post_n</code></td><td class="" data-label="설명">index 후 90일 내 혈당 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">11.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>glucose_min</code></td><td class="" data-label="설명">index ±90일 내 혈당 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">11.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>glucose_max</code></td><td class="" data-label="설명">index ±90일 내 혈당 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.1%</td><td class="" data-label="결측(전체)">11.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>glucose_pre_days</code></td><td class="" data-label="설명">index로부터 혈당 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.9%</td><td class="" data-label="결측(전체)">17.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ntprobnp_pre</code></td><td class="" data-label="설명">index 전 90일 내 NT-proBNP 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">46.6%</td><td class="" data-label="결측(전체)">55.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ntprobnp_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 NT-proBNP 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">36.5%</td><td class="" data-label="결측(전체)">45.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ntprobnp_post</code></td><td class="" data-label="설명">index 후 90일 내 NT-proBNP 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">70.0%</td><td class="" data-label="결측(전체)">73.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ntprobnp_post_n</code></td><td class="" data-label="설명">index 후 90일 내 NT-proBNP 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">36.5%</td><td class="" data-label="결측(전체)">45.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ntprobnp_min</code></td><td class="" data-label="설명">index ±90일 내 NT-proBNP 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">36.5%</td><td class="" data-label="결측(전체)">45.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ntprobnp_max</code></td><td class="" data-label="설명">index ±90일 내 NT-proBNP 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">36.5%</td><td class="" data-label="결측(전체)">45.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ntprobnp_pre_days</code></td><td class="" data-label="설명">index로부터 NT-proBNP 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">46.6%</td><td class="" data-label="결측(전체)">55.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_pre</code></td><td class="" data-label="설명">index 전 90일 내 INR 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">6.6%</td><td class="" data-label="결측(전체)">21.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 INR 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.9%</td><td class="" data-label="결측(전체)">13.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_post</code></td><td class="" data-label="설명">index 후 90일 내 INR 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">12.9%</td><td class="" data-label="결측(전체)">25.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_post_n</code></td><td class="" data-label="설명">index 후 90일 내 INR 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.9%</td><td class="" data-label="결측(전체)">13.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_min</code></td><td class="" data-label="설명">index ±90일 내 INR 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.9%</td><td class="" data-label="결측(전체)">13.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_max</code></td><td class="" data-label="설명">index ±90일 내 INR 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.9%</td><td class="" data-label="결측(전체)">13.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_pre_days</code></td><td class="" data-label="설명">index로부터 INR 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">6.6%</td><td class="" data-label="결측(전체)">21.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ptt_pre</code></td><td class="" data-label="설명">index 전 90일 내 PTT 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">7.0%</td><td class="" data-label="결측(전체)">23.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ptt_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 PTT 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">16.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ptt_post</code></td><td class="" data-label="설명">index 후 90일 내 PTT 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">14.4%</td><td class="" data-label="결측(전체)">29.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ptt_post_n</code></td><td class="" data-label="설명">index 후 90일 내 PTT 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">16.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ptt_min</code></td><td class="" data-label="설명">index ±90일 내 PTT 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">16.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ptt_max</code></td><td class="" data-label="설명">index ±90일 내 PTT 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">16.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ptt_pre_days</code></td><td class="" data-label="설명">index로부터 PTT 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">7.0%</td><td class="" data-label="결측(전체)">23.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lymphocyte_pre</code></td><td class="" data-label="설명">index 전 90일 내 림프구 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">24.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lymphocyte_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 림프구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lymphocyte_post</code></td><td class="" data-label="설명">index 후 90일 내 림프구 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">37.3%</td><td class="" data-label="결측(전체)">45.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lymphocyte_post_n</code></td><td class="" data-label="설명">index 후 90일 내 림프구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lymphocyte_min</code></td><td class="" data-label="설명">index ±90일 내 림프구 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lymphocyte_max</code></td><td class="" data-label="설명">index ±90일 내 림프구 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lymphocyte_pre_days</code></td><td class="" data-label="설명">index로부터 림프구 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">24.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>neutrophil_pre</code></td><td class="" data-label="설명">index 전 90일 내 호중구 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">24.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>neutrophil_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 호중구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>neutrophil_post</code></td><td class="" data-label="설명">index 후 90일 내 호중구 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">37.3%</td><td class="" data-label="결측(전체)">45.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>neutrophil_post_n</code></td><td class="" data-label="설명">index 후 90일 내 호중구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>neutrophil_min</code></td><td class="" data-label="설명">index ±90일 내 호중구 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>neutrophil_max</code></td><td class="" data-label="설명">index ±90일 내 호중구 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.6%</td><td class="" data-label="결측(전체)">16.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>neutrophil_pre_days</code></td><td class="" data-label="설명">index로부터 호중구 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">24.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_t_pre</code></td><td class="" data-label="설명">index 전 90일 내 트로포닌 T 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">30.6%</td><td class="" data-label="결측(전체)">44.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_t_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 트로포닌 T 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">21.9%</td><td class="" data-label="결측(전체)">36.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_t_post</code></td><td class="" data-label="설명">index 후 90일 내 트로포닌 T 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">49.4%</td><td class="" data-label="결측(전체)">59.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_t_post_n</code></td><td class="" data-label="설명">index 후 90일 내 트로포닌 T 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">21.9%</td><td class="" data-label="결측(전체)">36.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_t_min</code></td><td class="" data-label="설명">index ±90일 내 트로포닌 T 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">21.9%</td><td class="" data-label="결측(전체)">36.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_t_max</code></td><td class="" data-label="설명">index ±90일 내 트로포닌 T 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">21.9%</td><td class="" data-label="결측(전체)">36.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_t_pre_days</code></td><td class="" data-label="설명">index로부터 트로포닌 T 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">30.6%</td><td class="" data-label="결측(전체)">44.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lactate_pre</code></td><td class="" data-label="설명">index 전 90일 내 젖산 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">30.8%</td><td class="" data-label="결측(전체)">43.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lactate_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 젖산 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.7%</td><td class="" data-label="결측(전체)">32.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lactate_post</code></td><td class="" data-label="설명">index 후 90일 내 젖산 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">42.8%</td><td class="" data-label="결측(전체)">53.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lactate_post_n</code></td><td class="" data-label="설명">index 후 90일 내 젖산 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.7%</td><td class="" data-label="결측(전체)">32.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lactate_min</code></td><td class="" data-label="설명">index ±90일 내 젖산 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.7%</td><td class="" data-label="결측(전체)">32.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lactate_max</code></td><td class="" data-label="설명">index ±90일 내 젖산 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">18.7%</td><td class="" data-label="결측(전체)">32.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>lactate_pre_days</code></td><td class="" data-label="설명">index로부터 젖산 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">30.8%</td><td class="" data-label="결측(전체)">43.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>magnesium_pre</code></td><td class="" data-label="설명">index 전 90일 내 마그네슘 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.9%</td><td class="" data-label="결측(전체)">20.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>magnesium_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 마그네슘 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.5%</td><td class="" data-label="결측(전체)">13.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>magnesium_post</code></td><td class="" data-label="설명">index 후 90일 내 마그네슘 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.8%</td><td class="" data-label="결측(전체)">20.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>magnesium_post_n</code></td><td class="" data-label="설명">index 후 90일 내 마그네슘 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.5%</td><td class="" data-label="결측(전체)">13.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>magnesium_min</code></td><td class="" data-label="설명">index ±90일 내 마그네슘 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.5%</td><td class="" data-label="결측(전체)">13.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>magnesium_max</code></td><td class="" data-label="설명">index ±90일 내 마그네슘 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">0.5%</td><td class="" data-label="결측(전체)">13.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>magnesium_pre_days</code></td><td class="" data-label="설명">index로부터 마그네슘 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">4.9%</td><td class="" data-label="결측(전체)">20.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alt_pre</code></td><td class="" data-label="설명">index 전 90일 내 ALT 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">19.1%</td><td class="" data-label="결측(전체)">30.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alt_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 ALT 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.2%</td><td class="" data-label="결측(전체)">19.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alt_post</code></td><td class="" data-label="설명">index 후 90일 내 ALT 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">29.1%</td><td class="" data-label="결측(전체)">38.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alt_post_n</code></td><td class="" data-label="설명">index 후 90일 내 ALT 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.2%</td><td class="" data-label="결측(전체)">19.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alt_min</code></td><td class="" data-label="설명">index ±90일 내 ALT 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.2%</td><td class="" data-label="결측(전체)">19.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alt_max</code></td><td class="" data-label="설명">index ±90일 내 ALT 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.2%</td><td class="" data-label="결측(전체)">19.7%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alt_pre_days</code></td><td class="" data-label="설명">index로부터 ALT 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">19.1%</td><td class="" data-label="결측(전체)">30.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alkaline_phosphatase_pre</code></td><td class="" data-label="설명">index 전 90일 내 ALP 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">20.9%</td><td class="" data-label="결측(전체)">33.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alkaline_phosphatase_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 ALP 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">22.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alkaline_phosphatase_post</code></td><td class="" data-label="설명">index 후 90일 내 ALP 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">30.6%</td><td class="" data-label="결측(전체)">41.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alkaline_phosphatase_post_n</code></td><td class="" data-label="설명">index 후 90일 내 ALP 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">22.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alkaline_phosphatase_min</code></td><td class="" data-label="설명">index ±90일 내 ALP 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">22.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alkaline_phosphatase_max</code></td><td class="" data-label="설명">index ±90일 내 ALP 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.5%</td><td class="" data-label="결측(전체)">22.4%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>alkaline_phosphatase_pre_days</code></td><td class="" data-label="설명">index로부터 ALP 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">20.9%</td><td class="" data-label="결측(전체)">33.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ast_pre</code></td><td class="" data-label="설명">index 전 90일 내 AST 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">19.1%</td><td class="" data-label="결측(전체)">30.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ast_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 AST 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.4%</td><td class="" data-label="결측(전체)">20.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ast_post</code></td><td class="" data-label="설명">index 후 90일 내 AST 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">29.3%</td><td class="" data-label="결측(전체)">38.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ast_post_n</code></td><td class="" data-label="설명">index 후 90일 내 AST 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.4%</td><td class="" data-label="결측(전체)">20.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ast_min</code></td><td class="" data-label="설명">index ±90일 내 AST 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.4%</td><td class="" data-label="결측(전체)">20.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ast_max</code></td><td class="" data-label="설명">index ±90일 내 AST 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">9.4%</td><td class="" data-label="결측(전체)">20.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ast_pre_days</code></td><td class="" data-label="설명">index로부터 AST 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">19.1%</td><td class="" data-label="결측(전체)">30.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_total_pre</code></td><td class="" data-label="설명">index 전 90일 내 총빌리루빈 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">20.7%</td><td class="" data-label="결측(전체)">33.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_total_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 총빌리루빈 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.1%</td><td class="" data-label="결측(전체)">22.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_total_post</code></td><td class="" data-label="설명">index 후 90일 내 총빌리루빈 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">30.6%</td><td class="" data-label="결측(전체)">41.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_total_post_n</code></td><td class="" data-label="설명">index 후 90일 내 총빌리루빈 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.1%</td><td class="" data-label="결측(전체)">22.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_total_min</code></td><td class="" data-label="설명">index ±90일 내 총빌리루빈 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.1%</td><td class="" data-label="결측(전체)">22.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_total_max</code></td><td class="" data-label="설명">index ±90일 내 총빌리루빈 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">10.1%</td><td class="" data-label="결측(전체)">22.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_total_pre_days</code></td><td class="" data-label="설명">index로부터 총빌리루빈 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">20.7%</td><td class="" data-label="결측(전체)">33.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hba1c_pre</code></td><td class="" data-label="설명">index 전 90일 내 HbA1c 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">69.9%</td><td class="" data-label="결측(전체)">72.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hba1c_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 HbA1c 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.5%</td><td class="" data-label="결측(전체)">61.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hba1c_post</code></td><td class="" data-label="설명">index 후 90일 내 HbA1c 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">83.1%</td><td class="" data-label="결측(전체)">83.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hba1c_post_n</code></td><td class="" data-label="설명">index 후 90일 내 HbA1c 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.5%</td><td class="" data-label="결측(전체)">61.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hba1c_min</code></td><td class="" data-label="설명">index ±90일 내 HbA1c 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.5%</td><td class="" data-label="결측(전체)">61.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hba1c_max</code></td><td class="" data-label="설명">index ±90일 내 HbA1c 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">57.5%</td><td class="" data-label="결측(전체)">61.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hba1c_pre_days</code></td><td class="" data-label="설명">index로부터 HbA1c 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">69.9%</td><td class="" data-label="결측(전체)">72.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>free_t4_pre</code></td><td class="" data-label="설명">index 전 90일 내 유리 T4 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">89.1%</td><td class="" data-label="결측(전체)">90.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>free_t4_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 유리 T4 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">80.5%</td><td class="" data-label="결측(전체)">82.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>free_t4_post</code></td><td class="" data-label="설명">index 후 90일 내 유리 T4 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">88.8%</td><td class="" data-label="결측(전체)">90.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>free_t4_post_n</code></td><td class="" data-label="설명">index 후 90일 내 유리 T4 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">80.5%</td><td class="" data-label="결측(전체)">82.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>free_t4_min</code></td><td class="" data-label="설명">index ±90일 내 유리 T4 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">80.5%</td><td class="" data-label="결측(전체)">82.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>free_t4_max</code></td><td class="" data-label="설명">index ±90일 내 유리 T4 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">80.5%</td><td class="" data-label="결측(전체)">82.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>free_t4_pre_days</code></td><td class="" data-label="설명">index로부터 유리 T4 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">89.1%</td><td class="" data-label="결측(전체)">90.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>uric_acid_pre</code></td><td class="" data-label="설명">index 전 90일 내 요산 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">88.5%</td><td class="" data-label="결측(전체)">89.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>uric_acid_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 요산 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">84.4%</td><td class="" data-label="결측(전체)">86.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>uric_acid_post</code></td><td class="" data-label="설명">index 후 90일 내 요산 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">91.0%</td><td class="" data-label="결측(전체)">92.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>uric_acid_post_n</code></td><td class="" data-label="설명">index 후 90일 내 요산 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">84.4%</td><td class="" data-label="결측(전체)">86.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>uric_acid_min</code></td><td class="" data-label="설명">index ±90일 내 요산 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">84.4%</td><td class="" data-label="결측(전체)">86.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>uric_acid_max</code></td><td class="" data-label="설명">index ±90일 내 요산 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">84.4%</td><td class="" data-label="결측(전체)">86.2%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>uric_acid_pre_days</code></td><td class="" data-label="설명">index로부터 요산 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">88.5%</td><td class="" data-label="결측(전체)">89.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>reticulocyte_pre</code></td><td class="" data-label="설명">index 전 90일 내 망상적혈구 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">84.8%</td><td class="" data-label="결측(전체)">87.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>reticulocyte_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 망상적혈구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">74.5%</td><td class="" data-label="결측(전체)">78.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>reticulocyte_post</code></td><td class="" data-label="설명">index 후 90일 내 망상적혈구 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">86.1%</td><td class="" data-label="결측(전체)">88.6%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>reticulocyte_post_n</code></td><td class="" data-label="설명">index 후 90일 내 망상적혈구 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">74.5%</td><td class="" data-label="결측(전체)">78.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>reticulocyte_min</code></td><td class="" data-label="설명">index ±90일 내 망상적혈구 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">74.5%</td><td class="" data-label="결측(전체)">78.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>reticulocyte_max</code></td><td class="" data-label="설명">index ±90일 내 망상적혈구 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">74.5%</td><td class="" data-label="결측(전체)">78.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>reticulocyte_pre_days</code></td><td class="" data-label="설명">index로부터 망상적혈구 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">84.8%</td><td class="" data-label="결측(전체)">87.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_pre</code></td><td class="" data-label="설명">index 전 90일 내 eGFR(측정값) 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">97.5%</td><td class="" data-label="결측(전체)">97.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 eGFR(측정값) 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">97.3%</td><td class="" data-label="결측(전체)">97.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_post</code></td><td class="" data-label="설명">index 후 90일 내 eGFR(측정값) 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">97.7%</td><td class="" data-label="결측(전체)">97.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_post_n</code></td><td class="" data-label="설명">index 후 90일 내 eGFR(측정값) 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">97.3%</td><td class="" data-label="결측(전체)">97.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_min</code></td><td class="" data-label="설명">index ±90일 내 eGFR(측정값) 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">97.3%</td><td class="" data-label="결측(전체)">97.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_max</code></td><td class="" data-label="설명">index ±90일 내 eGFR(측정값) 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">97.3%</td><td class="" data-label="결측(전체)">97.1%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_pre_days</code></td><td class="" data-label="설명">index로부터 eGFR(측정값) 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">97.5%</td><td class="" data-label="결측(전체)">97.5%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hs_crp_pre</code></td><td class="" data-label="설명">index 전 90일 내 고감도 CRP 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.9%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hs_crp_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 고감도 CRP 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.9%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hs_crp_post</code></td><td class="" data-label="설명">index 후 90일 내 고감도 CRP 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">100.0%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hs_crp_post_n</code></td><td class="" data-label="설명">index 후 90일 내 고감도 CRP 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.9%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hs_crp_min</code></td><td class="" data-label="설명">index ±90일 내 고감도 CRP 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.9%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hs_crp_max</code></td><td class="" data-label="설명">index ±90일 내 고감도 CRP 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.9%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hs_crp_pre_days</code></td><td class="" data-label="설명">index로부터 고감도 CRP 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.9%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_i_pre</code></td><td class="" data-label="설명">index 전 90일 내 트로포닌 I 최근값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.8%</td><td class="" data-label="결측(전체)">99.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_i_pre_n</code></td><td class="" data-label="설명">index 전 90일 내 트로포닌 I 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.8%</td><td class="" data-label="결측(전체)">99.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_i_post</code></td><td class="" data-label="설명">index 후 90일 내 트로포닌 I 첫 측정값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">100.0%</td><td class="" data-label="결측(전체)">100.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_i_post_n</code></td><td class="" data-label="설명">index 후 90일 내 트로포닌 I 측정 횟수</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.8%</td><td class="" data-label="결측(전체)">99.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_i_min</code></td><td class="" data-label="설명">index ±90일 내 트로포닌 I 최솟값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.8%</td><td class="" data-label="결측(전체)">99.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_i_max</code></td><td class="" data-label="설명">index ±90일 내 트로포닌 I 최댓값</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.8%</td><td class="" data-label="결측(전체)">99.9%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>troponin_i_pre_days</code></td><td class="" data-label="설명">index로부터 트로포닌 I 최근측정까지 일수(음수)</td><td class="" data-label="출처">MIMIC-IV labevents</td><td class="" data-label="결측(주분석)">99.8%</td><td class="" data-label="결측(전체)">99.9%</td></tr>
+</tbody></table></div>
+<h3 class="cb-group" id="g-파생">파생</h3>
+<div class="tbl-wrap"><table class="cb">
+<thead><tr><th>변수</th><th>설명</th><th>출처</th><th>결측(주분석)</th><th>결측(전체)</th></tr></thead>
+<tbody>
+<tr><td class="cb-name" data-label="변수"><code>egfr_ckdepi2021</code></td><td class="" data-label="설명">CKD-EPI 2021 추정 사구체여과율</td><td class="" data-label="출처">파생(크레아티닌+나이+성별)</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">12.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>ckd_stage</code></td><td class="" data-label="설명">CKD 단계(G1~G5)</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">12.8%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bun_cr_ratio</code></td><td class="" data-label="설명">BUN/크레아티닌 비</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">1.4%</td><td class="" data-label="결측(전체)">13.3%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>contraindication_flag</code></td><td class="" data-label="설명">전이 전 90일 랩에서 금기·불내성 소견이 하나라도 있음(1=예)</td><td class="" data-label="출처">파생(랩 기준)</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>n_contraindications</code></td><td class="" data-label="설명">금기 소견 개수(0~5)</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>hyperkalemia_k55</code></td><td class="" data-label="설명">K &gt; 5.5 mmol/L</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>egfr_lt30</code></td><td class="" data-label="설명">eGFR &lt; 30 mL/min/1.73m²</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>anemia_hb8</code></td><td class="" data-label="설명">혈색소 &lt; 8 g/dL</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>bilirubin_gt3</code></td><td class="" data-label="설명">총빌리루빈 &gt; 3 mg/dL</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>inr_gt25</code></td><td class="" data-label="설명">INR &gt; 2.5</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+<tr><td class="cb-name" data-label="변수"><code>unexplained_gap</code></td><td class="" data-label="설명">gdmt_gap=1 이면서 금기 소견 없음 — 설명 불가 누락(주 결과변수)</td><td class="" data-label="출처">파생</td><td class="" data-label="결측(주분석)">0.0%</td><td class="" data-label="결측(전체)">0.0%</td></tr>
+</tbody></table></div>
+<h3 class="cb-group" id="g-결과변수-정의">결과변수 정의</h3>
+<h3 class="cb-group" id="g-주의사항">주의사항</h3>
+  </div>
+</section>
+
+<section id="limits">
+  <h2><span class="n">07</span>리뷰할 때 봐야 할 한계</h2>
+  <ol class="limits">
+    <li><b>처방은 입원 기록만 잡힌다.</b> 외래에서 약을 시작한 경우 “격차”로 잘못 분류된다.
+      주분석을 입원 환자로 좁힌 이유지만 완전히 해소되지는 않는다.</li>
+    <li><b>금기 정의가 조악하다.</b> K&gt;5.5, eGFR&lt;30, Hb&lt;8, 빌리루빈&gt;3, INR&gt;2.5 다섯 개뿐이고
+      저혈압·기립성 저혈압은 데이터에 없다.</li>
+    <li><b>사건 288건.</b> 변수 27개면 EPV 약 11로 빠듯하다. 정규화(elastic-net) 필수.</li>
+    <li><b>EF 측정법이 명시되지 않는다.</b> <code>lvef</code>가 visual인지 Teichholz인지 MIMIC 문서에 없다.</li>
+    <li><b>시대효과.</b> SGLT2i 처방률 0.2%, ARNI 1.0% — 자료 기간이 4제 요법 시대 이전을 포함한다.</li>
+  </ol>
+</section>
+
+<footer>
+  <p>데이터: MIMIC-IV-ECHO v1.0.1 (PhysioNet credentialed) · MIMIC-IV v3.1 hosp<br>
+  환자 단위 데이터는 DUA 에 따라 공개 저장소에 올리지 않는다. 이 페이지에는 집계 통계만 있다.</p>
+  <p>27paper-echo · 2026-11-01</p>
+</footer>
+
+</main>
+
+<script>
+const input = document.getElementById('cbfilter');
+const rows = () => document.querySelectorAll('#codebook-body tbody tr');
+const countEl = document.getElementById('cbcount');
+function upd() {
+  const q = input.value.trim().toLowerCase();
+  let shown = 0;
+  rows().forEach(tr => {
+    const hit = !q || tr.textContent.toLowerCase().includes(q);
+    tr.style.display = hit ? '' : 'none';
+    if (hit) shown++;
+  });
+  document.querySelectorAll('#codebook-body .cb-group').forEach(h => {
+    let s = h.nextElementSibling, any = false;
+    while (s && !s.classList.contains('cb-group')) {
+      if (s.querySelector('tbody tr:not([style*="none"])')) { any = true; break; }
+      s = s.nextElementSibling;
+    }
+    h.style.display = (!q || any) ? '' : 'none';
+    if (s && s.classList.contains('tbl-wrap')) s.style.display = (!q || any) ? '' : 'none';
+  });
+  countEl.textContent = q ? shown + '개 일치' : '';
+}
+input.addEventListener('input', upd);
+</script>
+</body>
+</html>
