@@ -99,3 +99,17 @@ footer p{margin:0;font-family:var(--font-mono);font-size:11.5px;color:var(--colo
   .mobile-layers{display:block}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto}}
+
+/* --- 페이지 전환 탭 --- */
+.pagetabs{background:var(--color-surface-0);border-bottom:1px solid var(--color-border)}
+.pagetabs .wrap{display:flex;gap:0;align-items:stretch}
+.pagetabs .pt{
+  font-family:var(--font-mono,"IBM Plex Mono",ui-monospace,monospace);
+  font-size:12.5px;letter-spacing:.06em;text-decoration:none;
+  padding:12px 18px;color:var(--color-text-3);
+  border-bottom:2px solid transparent;transition:color .15s ease,border-color .15s ease;
+}
+.pagetabs .pt:hover{color:var(--color-text-1)}
+.pagetabs .pt:focus-visible{outline:2px solid var(--color-focus);outline-offset:-2px}
+.pagetabs .pt.active{color:var(--color-accent);border-bottom-color:var(--color-accent);font-weight:500}
+@media (max-width:680px){.pagetabs .pt{padding:11px 14px;font-size:12px}}
