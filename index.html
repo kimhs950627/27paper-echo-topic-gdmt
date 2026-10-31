@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EF가 떨어졌는데 약이 바뀌지 않는다 — 심부전 치료 격차 연구 설계</title>
+<meta name="description" content="EF가 40% 미만으로 떨어진 뒤 4제 요법이 시작되지 않는 환자를 예측하는 연구 설계. MIMIC-IV-ECHO 실측 규모와 선행연구 지형, 한계와 성공 판정.">
+<link rel="canonical" href="https://kimhs950627.github.io/27paper-echo-topic-gdmt/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EF가 떨어졌는데 약이 바뀌지 않는다 — 심부전 치료 격차 연구 설계">
+<meta property="og:description" content="EF 하락 후 GDMT 미시작을 예측하는 연구. 실측 2,614건, 선행 ML 연구 3편. 설계·한계·성공 판정.">
+<meta property="og:url" content="https://kimhs950627.github.io/27paper-echo-topic-gdmt/">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:image" content="https://kimhs950627.github.io/27paper-echo-topic-gdmt/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://kimhs950627.github.io/27paper-echo-topic-gdmt/assets/og.png">
+<meta name="theme-color" content="#0B1220">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Pretendard:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230B1220'/%3E%3Cpath d='M6 22 L12 22 L15 10 L19 26 L23 16 L26 16' stroke='%230369A1' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles/tokens.css">
+<link rel="stylesheet" href="styles/site.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ScholarlyArticle","name":"EF가 떨어졌는데 약이 바뀌지 않는다 — 심부전 치료 격차 연구 설계","inLanguage":"ko","dateModified":"2026-11-01","abstract":"EF가 40% 미만으로 하락한 환자에서 guideline-directed medical therapy 시작 여부를 확인하고, 누락될 환자를 예측하는 연구 설계.","isBasedOn":"MIMIC-IV-ECHO v1.0.1"}
+</script>
+</head>
+<body>
+
+<div class="top">
+  <div class="wrap">
+    <span class="brand">27paper-echo · research note</span>
+    <nav>
+      <a href="#problem">문제</a>
+      <a href="#data">데이터</a>
+      <a href="#novelty">선행</a>
+      <a href="#risk">한계</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero wrap">
+  <p class="eyebrow">Candidate topic 01 · 2026-11-01</p>
+  <h1>EF가 떨어졌는데<br><span class="dim">약이 바뀌지 않는다</span></h1>
+  <p class="claim">심초음파에서 EF가 40% 미만으로 떨어지는 순간, <b>치료 적응이 새로 생긴다.</b>
+  문제는 그 순간이 시스템에 기록되지 않는다는 것. 이 논문은 <b>누가 누락될지 미리 예측해 플래그를 세우는 것</b>을 목표로 한다.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="v">26,132</div><div class="l">EF를 2회 이상 가진 환자</div></div>
+    <div class="stat"><div class="v warn">2,614</div><div class="l">EF ≥40 → &lt;40으로 떨어진 환자</div></div>
+    <div class="stat"><div class="v">313일</div><div class="l">전이 후 재검까지 중앙값 (IQR 57–882)</div></div>
+    <div class="stat"><div class="v">3편</div><div class="l">“ML로 GDMT 시작 예측” 선행연구</div></div>
+  </div>
+</header>
+
+<section id="problem" class="wrap">
+  <div class="sec-head"><span class="n">01</span><h2>문제: 적응이 생기는 순간이 기록되지 않는다</h2></div>
+  <p class="lead">HFrEF(EF &lt;40%)에는 네 가지 약(ACEi/ARB/ARNI · 베타차단제 · MRA · SGLT2i)이 근거를 갖는다.
+  심초음파에서 EF가 40% 아래로 내려가면 <b>그 네 가지가 새로 적응</b>이 된다.</p>
+  <p>그런데 실제 흐름은 이렇게 끊긴다. 심초음파 판독문에 “EF 38%”가 적히고, 판독 의사는 다음 외래를 기다리고,
+  처방은 외래에서 이뤄지고, 그 사이 환자는 다른 이유로 다른 과를 본다. <b>검사 결과가 처방 변경을 강제하는 장치가 없다.</b>
+  그래서 같은 EF 38%가 어떤 환자에게는 2주 안에 약이 바뀌고, 어떤 환자에게는 1년간 그대로 남는다.</p>
+  <p>이 논문이 묻는 것은 하나다. <b>“누가 누락될지, 검사 결과가 나온 그 시점에 알 수 있는가.”</b></p>
+</section>
+
+<section id="data" class="wrap">
+  <div class="sec-head"><span class="n">02</span><h2>데이터: 심초음파 측정 · 입원 기록 · 처방</h2></div>
+  <p class="lead">세 층을 환자 단위로 붙인다. 영상은 쓰지 않는다 — 이미지가 없어도 성립하는 설계가 이 주제의 장점이다.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 900 300" role="img" aria-label="심초음파 측정, 입원 기록, 처방 데이터의 결합 구조">
+      <g font-family="JetBrains Mono, monospace" font-size="12" fill="#B9C2CE">
+        <rect x="30" y="24" width="250" height="86" fill="#1A202D" stroke="#33405A"/>
+        <text x="46" y="50" fill="#7FB6D9" font-size="11">LAYER 1 · ECHO</text>
+        <text x="46" y="74" fill="#E8EDF4">MIMIC-IV-ECHO</text>
+        <text x="46" y="94" fill="#8B95A5" font-size="11">EF · LV치수 · E/e′ · TR Vmax · LAV</text>
+
+        <rect x="30" y="132" width="250" height="86" fill="#1A202D" stroke="#33405A"/>
+        <text x="46" y="158" fill="#7FB6D9" font-size="11">LAYER 2 · ADMISSION</text>
+        <text x="46" y="182" fill="#E8EDF4">MIMIC-IV hosp</text>
+        <text x="46" y="202" fill="#8B95A5" font-size="11">입원·퇴원 시점 · 진단코드 · 검사</text>
+
+        <rect x="30" y="240" width="250" height="46" fill="#1A202D" stroke="#33405A"/>
+        <text x="46" y="260" fill="#7FB6D9" font-size="11">LAYER 3 · ACTION</text>
+        <text x="46" y="278" fill="#E8EDF4" font-size="11">처방(prescriptions) · 투약기록</text>
+
+        <line x1="280" y1="67" x2="360" y2="140" stroke="#0369A1" stroke-width="1"/>
+        <line x1="280" y1="175" x2="360" y2="160" stroke="#0369A1" stroke-width="1"/>
+        <line x1="280" y1="263" x2="360" y2="180" stroke="#0369A1" stroke-width="1"/>
+
+        <rect x="360" y="120" width="190" height="80" fill="#12293A" stroke="#0369A1"/>
+        <text x="376" y="148" fill="#E8EDF4" font-size="12">환자·시점 결합</text>
+        <text x="376" y="168" fill="#8B95A5" font-size="11">EF 전이 시점 기준</text>
+        <text x="376" y="186" fill="#8B95A5" font-size="11">−90일 / +90일 창</text>
+
+        <line x1="550" y1="160" x2="620" y2="160" stroke="#0369A1" stroke-width="1"/>
+        <rect x="620" y="112" width="240" height="96" fill="#1A202D" stroke="#33405A"/>
+        <text x="636" y="138" fill="#7FB6D9" font-size="11">OUTCOME</text>
+        <text x="636" y="160" fill="#E8EDF4" font-size="12">전이 후 90일 내</text>
+        <text x="636" y="180" fill="#E8EDF4" font-size="12">4제 요법 시작 여부</text>
+        <text x="636" y="200" fill="#8B95A5" font-size="11">시작 / 유지 / 중단</text>
+      </g>
+    </svg>
+  </div>
+  <ul class="mobile-layers">
+    <li><b>Layer 1 · Echo</b><span>MIMIC-IV-ECHO — EF, LV 치수, E/e′, TR Vmax, LAV</span></li>
+    <li><b>Layer 2 · Admission</b><span>MIMIC-IV hosp — 입원·퇴원 시점, 진단코드, 검사</span></li>
+    <li><b>Layer 3 · Action</b><span>처방과 투약기록 — 약이 실제로 바뀌었는가</span></li>
+  </ul>
+  <p class="cap">Layer 3이 이 설계의 핵심이다. 처방 데이터가 있어야 “약이 실제로 바뀌었는가”를 결과로 쓸 수 있다. 영상은 필요 없다.</p>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><span class="n">03</span><h2>실측: 전이는 흔하고, 재검은 늦다</h2></div>
+  <p class="lead">MIMIC-IV-ECHO만으로 이미 확인되는 숫자다. 처방 층을 붙이기 전 단계.</p>
+
+  <table>
+    <thead><tr><th>지표</th><th>값</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td>TTE EF를 2회 이상 가진 환자</td><td class="n">26,132</td><td>전이를 관찰할 수 있는 모집단</td></tr>
+      <tr class="hi"><td>EF ≥40 → &lt;40 전이</td><td class="n">2,614</td><td>HFrEF 적응이 새로 생긴 환자</td></tr>
+      <tr><td>전이 후 30일 내 재검</td><td class="n">504</td><td>19%만 빠르게 재확인</td></tr>
+      <tr><td>전이 후 90일 내 재검</td><td class="n">791</td><td>30%</td></tr>
+      <tr><td>전이→재검 간격 중앙값</td><td class="n">313일</td><td>IQR 57–882일</td></tr>
+    </tbody>
+  </table>
+  <p class="cap">정의: TTE <code>lvef</code> 유효값(0–100) 기준, 환자당 첫 전이 사건 1건. 전이는 두 검사 사이에 발생한 것으로 간주(구간중도).</p>
+
+  <div class="callout">
+    <h3>이 숫자가 말하는 것</h3>
+    <p>EF가 떨어져도 <b>재검까지 중앙 313일</b>이 걸린다. 그 사이 환자는 “EF 38%인 사람”으로 살아가지만,
+    그 사실이 처방을 바꾸는 사건으로 이어지지 않는다. 이 논문이 노리는 틈이 정확히 여기다.</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><span class="n">04</span><h2>논문이 하는 일</h2></div>
+  <div class="grid3">
+    <div class="card">
+      <span class="tag">step 1 · 측정</span>
+      <h3>전이를 정의한다</h3>
+      <p>EF ≥40에서 &lt;40으로 떨어진 시점을 구간중도(interval-censored)로 정의하고, 시간 창을 명시한다.</p>
+    </div>
+    <div class="card">
+      <span class="tag">step 2 · 행동</span>
+      <h3>약이 바뀌었는지 본다</h3>
+      <p>전이 후 90일 내 4제 요법 시작·유지·중단을 처방 기록으로 판정한다. 여기가 격차(gap)의 실체다.</p>
+    </div>
+    <div class="card">
+      <span class="tag">step 3 · 예측</span>
+      <h3>누락될 환자를 플래그한다</h3>
+      <p>전이 시점에 알 수 있는 변수만으로 “약이 안 바뀔 환자”를 예측한다. 출력은 위험점수가 아니라 <b>검토 대기 목록</b>이다.</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:26px">
+    <div class="callout ok">
+      <h3>출력의 형태</h3>
+      <p>“이 환자는 EF 38%로 떨어졌고, 과거 3회 모두 약 변경이 없었으며, 외래 예약이 6주 뒤입니다 — <b>지금 검토하세요.</b>”
+      날짜가 아니라 <b>행동</b>을 지정하는 출력이다.</p>
+    </div>
+    <div class="callout">
+      <h3>평가는 무엇으로</h3>
+      <p>분류 정확도가 아니라 <b>플래그 100건당 실제 누락 적발 수</b>와 <b>과잉 플래그 비율</b>.
+      이 두 숫자가 임상에서 쓸지 말지를 결정한다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="novelty" class="wrap">
+  <div class="sec-head"><span class="n">05</span><h2>선행연구 지형 — 비어 있는 칸은 하나다</h2></div>
+  <p class="lead">PubMed 실측(2026-11-01). “치료 격차” 자체는 연구가 많지만, <b>“누가 누락될지 예측”</b>은 거의 비어 있다.</p>
+  <table>
+    <thead><tr><th>질문</th><th>편수</th><th>판정</th></tr></thead>
+    <tbody>
+      <tr><td>EF 하락 후 GDMT 미시작 (격차 기술)</td><td class="n">35</td><td>존재 — 개념은 알려짐</td></tr>
+      <tr><td>심초음파가 GDMT를 촉발하는가</td><td class="n">107</td><td>중간 — 연관은 연구됨</td></tr>
+      <tr class="hi"><td><b>ML로 GDMT 시작 여부를 예측</b></td><td class="n">3</td><td><b>비어 있음 — 우리 자리</b></td></tr>
+      <tr><td>심초음파 보고서의 실행가능성</td><td class="n">21</td><td>드묾</td></tr>
+      <tr><td>MIMIC × 심부전 × 약물</td><td class="n">1,115</td><td>포화 — 방법이 아니라 질문으로 차별화</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2" style="margin-top:24px">
+    <div class="callout">
+      <h3>novelty는 어디에 있는가</h3>
+      <p>“격차가 있다”도 아니고 “ML을 썼다”도 아니다. <b>심초음파 결과가 나온 시점에, 그 결과가 행동으로 이어질지 예측한다</b>는 것.
+      검사와 처방 사이의 단절을 예측 대상으로 삼는 연구는 3편뿐이다.</p>
+    </div>
+    <div class="callout stop">
+      <h3>경쟁자가 생길 수 있는 지점</h3>
+      <p>HF 등록연구(registry)에서 이미 “GDMT 최적화 예측”이 나올 수 있다. 우리 차이는 <b>심초음파 전이가 출발점</b>이라는 것 —
+      입원이 아니라 검사가 트리거다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="risk" class="wrap">
+  <div class="sec-head"><span class="n">06</span><h2>무너질 지점 — 먼저 적는다</h2></div>
+  <div class="grid2">
+    <div>
+      <div class="callout stop">
+        <h3>① 처방이 입원 것만 잡힌다</h3>
+        <p>MIMIC-IV의 처방은 입원 기록이다. 외래에서 약을 시작한 경우 “안 바뀐 것”으로 잘못 분류된다.
+        이건 이 설계의 <b>최대 위협</b>이다. 대응: 입원 중 전이한 환자로 1차 코호트를 좁히고, 외래 미상은 별도 층으로 표시한다.</p>
+      </div>
+      <div class="callout">
+        <h3>② 전이가 일시적일 수 있다</h3>
+        <p>수액 과부하·패혈증으로 EF가 일시 하락할 수 있다. 대응: 재검으로 확인된 전이와 단발 전이를 나눠 민감도 분석.</p>
+      </div>
+    </div>
+    <div>
+      <div class="callout">
+        <h3>③ 교란 — 아픈 사람만 약을 못 받는다</h3>
+        <p>신기능 악화·저혈압·빈혈이 있으면 약을 못 올린다. 이건 누락이 아니라 <b>정당한 미시작</b>이다.
+        대응: 금기·불내성 변수를 명시적으로 모형에 넣고, “정당한 미시작”과 “설명 없는 누락”을 분리한다.</p>
+      </div>
+      <div class="callout ok">
+        <h3>살아나는 조건</h3>
+        <p>“설명 없는 누락”이 전체 전이의 <b>20% 이상</b>이고, 그 집단을 <b>AUC 0.7 이상</b>으로 예측하면 논문이 성립한다.
+        둘 중 하나만 되면 기술 보고(descriptive)로 축소한다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="sec-head"><span class="n">07</span><h2>성공 판정과 일정</h2></div>
+  <ol class="steps">
+    <li><b>코호트 확정 (1주)</b><span>전이 2,614명에 입원·처방을 붙여 분석 모집단 확정. 판정: 표 1이 만들어진다.</span></li>
+    <li><b>격차 측정 (2주)</b><span>전이 후 90일 내 4제 요법 시작률과 “설명 없는 누락” 비율. 판정: 누락 비율의 95% CI가 보고된다.</span></li>
+    <li><b>예측 모형 (3주)</b><span>전이 시점 변수만으로 누락 예측, 시간 분할 검증. 판정: AUC와 보정(calibration)이 보고된다.</span></li>
+    <li><b>임상 효용 (4주)</b><span>플래그 100건당 적발 수와 과잉 플래그. 판정: 순이익(net benefit) 곡선이 그려진다.</span></li>
+  </ol>
+
+  <div class="callout ok" style="margin-top:24px">
+    <h3>이 주제를 고른 이유</h3>
+    <p>AI가 있어야만 하는 주제는 아니다. 대신 <b>데이터 안에 실제 행동(처방)이 있어</b> 주장을 검증할 수 있다.
+    “예측 정확도”가 아니라 “놓친 환자를 잡았는가”로 평가되므로, 심사에서 방어선이 명확하다.</p>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p>데이터: MIMIC-IV-ECHO v1.0.1 (PhysioNet, credentialed) · 처방 층은 MIMIC-IV hosp, 분석 예정.<br>
+  수치는 TTE <code>lvef</code> 유효값 기준 실측이며, GDMT 시작률은 아직 측정되지 않았다.</p>
+  <p>27paper-echo · 2026-11-01</p>
+</footer>
+
+</body>
+</html>

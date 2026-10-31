@@ -1,0 +1,67 @@
+/* design-craft — theme-advisor 로 생성한 토큰 (테마 전체).
+ * theme: terminal-mono (터미널 모노 (기술·데이터)) · fingerprint: terminal-mono|mono-terminal|compressed|hard|scanlines|dark
+ * color family: cobalt-paper (코발트 · 페이퍼) · accent #0369A1 · 매체 site · 대상 심부전 EF 하락 후 치료 격차
+ * 타이포: 모노 터미널 · 밀도: 압축 · 질감: 스캔라인 · 모션: 거의 없음
+ * 이미지: 차트·표
+ * 규칙: 어두운 배경 + 형광 1색. 모노 라벨, 표가 화면을 채운다
+ * 모션 주의: 인쇄·문서형. 페이드만, 큰 이동 금지
+ */
+:root {
+  --color-surface-0: #0B1220;
+  --color-surface-1: #1A202D;
+  --color-surface-2: #282E3B;
+  --color-surface-inverse: #F5F7FB;
+  --color-surface-overlay: rgba(11, 18, 32, 0.78);
+  --color-text-1: #F5F3F0;
+  --color-text-2: #B3B4B6;
+  --color-text-3: #CBCACB;
+  --color-text-on-inverse: #0B1220;
+  --color-text-on-accent: #0B1220;
+  --color-border: rgba(255, 255, 255, 0.16);
+  --color-border-strong: rgba(255, 255, 255, 0.34);
+  --color-accent: #5B9CBF;
+  --color-accent-quiet: #1D3043;
+  --color-accent-strong: #97C0D6;
+  --color-focus: #1654C9;
+  --color-positive: #2E6C4C;
+  --color-warning: #825900;
+  --color-negative: #A32A2A;
+  --font-display: "JetBrains Mono", "D2Coding", ui-monospace, monospace;
+  --font-body: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "D2Coding", ui-monospace, monospace;
+  --text-display: clamp(1.9rem, 4.2vw, 3.25rem);
+  --text-h1: 2.25rem;
+  --text-h2: 1.5rem;
+  --text-h3: 1.0625rem;
+  --text-body: 0.9375rem;
+  --text-small: 0.8125rem;
+  --leading-body: 1.62;
+  --leading-heading: 1.12;
+  --tracking-display: -0.01em;
+  --tracking-body: 0;
+  --space-base: 2px;
+  --space-4: 10px;
+  --space-12: 28px;
+  --space-24: 48px;
+  --section-y: clamp(28px, 3.5vw, 56px);
+  --section-y-lg: clamp(44px, 5vw, 88px);
+  --container-max: 1320px;
+  --pad-x: clamp(20px, 3vw, 44px);
+  --maxw: 1320px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-pill: 0px;
+  --shadow-lift: none;
+  --shadow-overlay: 8px 8px 0 0 var(--color-text-1);
+  --surface-texture: scanlines(3px, .04);
+  --surface-bg-extra: none;
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-scene: 320ms;
+  --ease-standard: cubic-bezier(.4,0,.2,1);
+  --stagger-step: 40ms;
+}
+
+/* 질감은 배경 레이어로 구현한다(토큰 값만 보고 손으로 hex 를 만들지 않는다):
+   --surface-texture: grain|scanlines|grid|dots|duotone|none  ·  --surface-bg-extra: 배경 레이어 */
+/* 인쇄(PDF·책)면 질감·그림자를 끄고 괘선·굵기로 위계를 만든다. */
